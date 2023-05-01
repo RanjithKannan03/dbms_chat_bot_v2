@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "994872315722",
+    "project_id": "dbms-chatbot",
+    "storage_bucket": "dbms-chatbot.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:994872315722:android:ea5e25695e75947cc07bb3",
+        "android_client_info": {
+          "package_name": "com.Ranjith.dbms_chat_bot"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "994872315722-6a38m68nanj4abcdj0sdbig9117uj6q7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAFZdvbYV-S3-QxWSi1VU4kqhqj5ewGnWs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "994872315722-6a38m68nanj4abcdj0sdbig9117uj6q7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
