@@ -5,16 +5,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'welcome_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:dialog_flowtter/dialog_flowtter.dart';
 
 final _firestore=FirebaseFirestore.instance;
 final _auth=FirebaseAuth.instance;
 late User loggedInUser;
 final picker=ImagePicker();
+late DialogFlowtter agent;
 
 class ChatScreen extends StatefulWidget {
 
   static const String id='chat_screen';
-
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -26,10 +27,12 @@ class _ChatScreenState extends State<ChatScreen> {
   late String messageText;
   late var image=null;
 
+
   @override
   void initState() {
     super.initState();
     getCurrentUser();
+    createDialogflowtterAgent();
   }
 
   void getCurrentUser()async{
@@ -38,6 +41,21 @@ class _ChatScreenState extends State<ChatScreen> {
       if(user!=null)
         {
           loggedInUser=user;
+        }
+    }
+    catch(e)
+    {
+      print(e);
+    }
+}
+
+  void createDialogflowtterAgent()async{
+    try{
+      final DialogAuthCredentials credentials=await DialogAuthCredentials.fromFile('assets/dialog_flow_auth.json');
+      DialogFlowtter instance=DialogFlowtter(credentials: credentials);
+      if(instance!=null)
+        {
+          agent=instance;
         }
     }
     catch(e)
@@ -100,7 +118,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       Icons.send,
                     color: Colors.lightBlueAccent,
                     ),
-                    onPressed: (){
+                    onPressed: () async {
                       _firestore.collection('messages').add({
                         "text":messageText,
                         "from":loggedInUser.email,
@@ -109,6 +127,27 @@ class _ChatScreenState extends State<ChatScreen> {
                       }
                       );
                       _controller.clear();
+                      FocusNode currentFocus=FocusScope.of(context);
+                      if(!currentFocus.hasPrimaryFocus)
+                        {
+                          currentFocus.unfocus();
+                        }
+                      QueryInput query=QueryInput(
+                        text: TextInput(
+                          text: messageText,
+                          languageCode: 'en'
+                        )
+                      );
+                      DetectIntentResponse response=await agent.detectIntent(queryInput: query);
+                      String? textResponse=response.text;
+                      _firestore.collection('messages').add(
+                        {
+                          "text":textResponse,
+                          "from":"chatbot",
+                          "to":loggedInUser.email,
+                          "time":Timestamp.now()
+                        }
+                      );
                     },
                   )
                 ],
@@ -191,6 +230,9 @@ class MessageBubble extends StatelessWidget {
               padding: EdgeInsets.symmetric(vertical: 10.0,horizontal: 20.0),
               child: Text(
                 messageText,
+                style: TextStyle(
+                  color: isMe?Colors.white:Colors.blue,
+                ),
               )
             ),
           ),
@@ -228,7 +270,7 @@ class SideBarState extends State<SideBar> {
             child: Row(
               children: [
                 CircleAvatar(
-                  backgroundImage: widget.imageAvailable?FileImage(widget.image):const AssetImage('images/spider_pic.png') as ImageProvider,
+                  backgroundImage: widget.imageAvailable?FileImage(widget.image):const AssetImage('assets/images/spider_pic.png') as ImageProvider,
                   radius: 60.0,
                 ),
                 const SizedBox(
