@@ -6,12 +6,15 @@ import 'welcome_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:dialog_flowtter/dialog_flowtter.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
 
 final _firestore=FirebaseFirestore.instance;
 final _auth=FirebaseAuth.instance;
 late User loggedInUser;
 final picker=ImagePicker();
 late DialogFlowtter agent;
+late Map? details;
+
 
 class ChatScreen extends StatefulWidget {
 
@@ -21,17 +24,29 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   final _controller=TextEditingController();
   late String messageText;
   late var image=null;
-
+  bool showSpinner=false;
+  double opacity=1;
 
   @override
-  void initState() {
+  void initState(){
     super.initState();
     getCurrentUser();
+    Future.delayed(Duration.zero,()async{
+      try{
+        await _firestore.collection('users').doc(loggedInUser.uid).get().then((value){
+          details=value.data();
+        });
+      }
+      catch(e)
+      {
+        print(e);
+      }
+    });
     createDialogflowtterAgent();
   }
 
@@ -47,7 +62,19 @@ class _ChatScreenState extends State<ChatScreen> {
     {
       print(e);
     }
-}
+  }
+
+  void getUserDetails()async{
+    try{
+      await _firestore.collection('users').doc(loggedInUser.uid).get().then((value){
+        details=value.data();
+      });
+    }
+    catch(e)
+    {
+      print(e);
+    }
+  }
 
   void createDialogflowtterAgent()async{
     try{
@@ -92,7 +119,27 @@ class _ChatScreenState extends State<ChatScreen> {
       appBar: AppBar(
         centerTitle: true,
         leading: null,
-        title: const Text('Chat'),
+        title: Padding(
+          padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.height*0.1),
+          child: Row(
+            children: [
+              Container(
+                height: 45.0,
+                child: ModalProgressHUD(
+                  inAsyncCall: showSpinner,
+                    color: null,
+                    child: Image.asset(
+                        'assets/images/logo.png',
+                    opacity: AnimationController(
+                      vsync: this,
+                      value: opacity
+                    ),)
+                ),
+              ),
+              Text('Chat')
+            ],
+          ),
+        ),
       ),
       body: SafeArea(
         child: Column(
@@ -127,6 +174,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       }
                       );
                       _controller.clear();
+                      setState(() {
+                        showSpinner=true;
+                        opacity=0;
+                      });
                       FocusNode currentFocus=FocusScope.of(context);
                       if(!currentFocus.hasPrimaryFocus)
                         {
@@ -148,6 +199,10 @@ class _ChatScreenState extends State<ChatScreen> {
                           "time":Timestamp.now()
                         }
                       );
+                      setState(() {
+                        showSpinner=false;
+                        opacity=1;
+                      });
                     },
                   )
                 ],
@@ -276,9 +331,9 @@ class SideBarState extends State<SideBar> {
                 const SizedBox(
                   width: 30.0,
                 ),
-                const Text(
-                  "Name",
-                  style: TextStyle(
+                Text(
+                  details!['name'],
+                  style: const TextStyle(
                       fontSize: 20.0,
                       fontWeight: FontWeight.bold
                   ),

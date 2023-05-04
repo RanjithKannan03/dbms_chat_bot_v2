@@ -6,6 +6,7 @@ import 'package:dbms_chat_bot/components/rounded_button.dart';
 import 'package:dbms_chat_bot/constants.dart';
 import 'chat_screen.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'details_screen.dart';
 
 class RegistrationScreen extends StatefulWidget {
 
@@ -78,7 +79,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       final newUser=await _auth.createUserWithEmailAndPassword(email: email, password: password);
                       if(newUser!=null)
                         {
-                          Navigator.pushNamedAndRemoveUntil(context, ChatScreen.id, (route) => false);
+                          Navigator.pushNamedAndRemoveUntil(context, DetailsScreen.id, (route) => false);
                           setState(() {
                             showSpinner=false;
                           });
