@@ -80,7 +80,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
                     onPressed: ()async{
                     _firestore.collection('users').doc(loggedInUser.uid).set(
                       {
-                        'email':loggedInUser.email,
                         'name':name,
                         'profile-pic':null
                       }

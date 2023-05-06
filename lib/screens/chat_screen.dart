@@ -1,3 +1,4 @@
+import 'package:dbms_chat_bot/screens/settings_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:dbms_chat_bot/constants.dart';
@@ -8,12 +9,13 @@ import 'dart:io';
 import 'package:dialog_flowtter/dialog_flowtter.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 
+
 final _firestore=FirebaseFirestore.instance;
 final _auth=FirebaseAuth.instance;
 late User loggedInUser;
-final picker=ImagePicker();
 late DialogFlowtter agent;
-late Map? details;
+
+
 
 
 class ChatScreen extends StatefulWidget {
@@ -28,7 +30,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   final _controller=TextEditingController();
   late String messageText;
-  late var image=null;
   bool showSpinner=false;
   double opacity=1;
 
@@ -36,17 +37,17 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   void initState(){
     super.initState();
     getCurrentUser();
-    Future.delayed(Duration.zero,()async{
-      try{
-        await _firestore.collection('users').doc(loggedInUser.uid).get().then((value){
-          details=value.data();
-        });
-      }
-      catch(e)
-      {
-        print(e);
-      }
-    });
+    // Future.delayed(Duration.zero,()async{
+    //   try{
+    //     await _firestore.collection('users').doc(loggedInUser.uid).get().then((value){
+    //       details=value.data();
+    //     });
+    //   }
+    //   catch(e)
+    //   {
+    //     print(e);
+    //   }
+    // });
     createDialogflowtterAgent();
   }
 
@@ -64,17 +65,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     }
   }
 
-  void getUserDetails()async{
-    try{
-      await _firestore.collection('users').doc(loggedInUser.uid).get().then((value){
-        details=value.data();
-      });
-    }
-    catch(e)
-    {
-      print(e);
-    }
-  }
 
   void createDialogflowtterAgent()async{
     try{
@@ -91,20 +81,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     }
 }
 
-  void pickImage() async
-  {
-    final i=await picker.pickImage(source: ImageSource.gallery);
-    if(i!=null)
-      {
-        setState(() {
-          image=File(i.path);
-        });
-      }
-    else
-      {
-        image=null;
-      }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,8 +89,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         _auth.signOut();
         Navigator.pushNamedAndRemoveUntil(context, WelcomeScreen.id, (route) => false);
       },
-      image: image,
-        imageAvailable: image!=null?true:false,
       ),
       appBar: AppBar(
         centerTitle: true,
@@ -299,11 +273,9 @@ class MessageBubble extends StatelessWidget {
 
 class SideBar extends StatefulWidget {
 
-  SideBar({required this.onPressed,required this.image,required this.imageAvailable});
+  SideBar({required this.onPressed});
 
   final Function onPressed;
-  final image;
-  final imageAvailable;
 
   @override
   State<SideBar> createState() => SideBarState();
@@ -312,48 +284,71 @@ class SideBar extends StatefulWidget {
 class SideBarState extends State<SideBar> {
 
 
+
   @override
   Widget build(BuildContext context) {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(
-              color: Colors.blue,
-            ),
-            child: Row(
+    return StreamBuilder<DocumentSnapshot>(
+        stream: _firestore.collection('users').doc(loggedInUser.uid).snapshots(),
+      builder: (context,AsyncSnapshot snapshot){
+          if(!snapshot.hasData)
+            {
+              return Container();
+            }
+          final details=snapshot.data;
+          return Drawer(
+            child: ListView(
+              padding: EdgeInsets.zero,
               children: [
-                CircleAvatar(
-                  backgroundImage: widget.imageAvailable?FileImage(widget.image):const AssetImage('assets/images/spider_pic.png') as ImageProvider,
-                  radius: 60.0,
-                ),
-                const SizedBox(
-                  width: 30.0,
-                ),
-                Text(
-                  details!['name'],
-                  style: const TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold
+                DrawerHeader(
+                  decoration: const BoxDecoration(
+                    color: Colors.blue,
                   ),
-                )
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundImage: details!['profile-pic']!=null?NetworkImage(details!['profile-pic']):const AssetImage('assets/images/spider_pic.png') as ImageProvider,
+                        radius: 60.0,
+                      ),
+                      const SizedBox(
+                        width: 30.0,
+                      ),
+                      Text(
+                        details!['name'],
+                        style: const TextStyle(
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+                ListTile(
+                  onTap: (){
+                    Navigator.pushNamed(context, SettingsScreen.id,arguments: '${loggedInUser.uid}');
+                  },
+                  title: Row(
+                    children: const [
+                      Icon(Icons.settings),
+                      Text('Settings')
+                    ],
+                  ),
+                ),
+                ListTile(
+                  onTap: (){
+                    widget.onPressed();
+                  },
+                  title:Row(
+                    children: const [
+                      Icon(Icons.logout),
+                      Text('Logout')
+                    ],
+                  ),
+                ),
               ],
             ),
-          ),
-          ListTile(
-            onTap: (){
-              widget.onPressed();
-            },
-            title:Row(
-              children: const [
-                Icon(Icons.logout),
-                Text('Logout')
-              ],
-            ),
-          )
-        ],
-      ),
+          );
+      },
+
     );
   }
 }

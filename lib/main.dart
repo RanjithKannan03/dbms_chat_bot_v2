@@ -5,6 +5,7 @@ import 'screens/registration_screen.dart';
 import 'screens/chat_screen.dart';
 import 'screens/details_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'screens/settings_screen.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +24,8 @@ class DBMSChatApp extends StatelessWidget {
         LoginScreen.id:(context)=>LoginScreen(),
         RegistrationScreen.id:(context)=>RegistrationScreen(),
         ChatScreen.id:(context)=>ChatScreen(),
-        DetailsScreen.id:(context)=>DetailsScreen()
+        DetailsScreen.id:(context)=>DetailsScreen(),
+        SettingsScreen.id:(context)=>SettingsScreen()
       },
 
     );
