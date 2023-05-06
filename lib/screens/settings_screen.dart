@@ -10,6 +10,7 @@ import 'package:dialog_flowtter/dialog_flowtter.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'chat_screen.dart';
+import 'package:image_cropper/image_cropper.dart';
 
 final _firestore = FirebaseFirestore.instance;
 final _auth = FirebaseAuth.instance;
@@ -36,7 +37,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool showSpinner = false;
   late var image = null;
   final picker = ImagePicker();
-  late String newName;
+  late String newName='';
   late String imgURL='';
   late String uid;
 
@@ -47,11 +48,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void pickImage() async {
     final reference = _storage.ref().child("images/${uid}");
-    final i = await picker.pickImage(source: ImageSource.gallery);
+    final i = await picker.pickImage(
+      source: ImageSource.gallery,
+    );
     if (i != null) {
       image = File(i.path);
       await reference.putFile(image);
-      imgURL = await reference.getDownloadURL();
+      reference.getDownloadURL().then((value){
+        imgURL=value;
+      });
     } else {
       image = null;
     }
@@ -115,25 +120,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         RoundedButton(
                             label: 'Submit',
                             onPressed: () {
-                              if(imgURL=='')
-                                {
-                                  _firestore.collection('users').doc(uid).set(
-                                      {
-                                        'name': newName,
-                                      },
-                                      SetOptions(merge: true)
-                                      );
-
-                                }
-                              else
-                                {
-                                  _firestore.collection('users').doc(uid).set(
-                                      {
-                                        'name': newName,
-                                        'profile-pic':imgURL
-                                      },SetOptions(merge: true)
-                                  );
-                                }
+                              _firestore.collection('users').doc(uid).set(
+                                  {
+                                    'name': newName==''?details['name']:newName,
+                                    'profile-pic':imgURL==''?details['profile-pic']:imgURL
+                                  },SetOptions(merge: true)
+                              );
                               Navigator.pushNamedAndRemoveUntil(context, ChatScreen.id, (route) => false);
                             },
                             color: Colors.blueAccent)

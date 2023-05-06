@@ -84,9 +84,22 @@ class _LoginScreenState extends State<LoginScreen> {
                         showSpinner=false;
                       });
                     }
-                    catch(e)
+                    on FirebaseAuthException catch(e)
                       {
-                        print(e);
+                        setState(() {
+                          showSpinner=false;
+                        });
+                        final snackBar=SnackBar(
+                          shape: const RoundedRectangleBorder(),
+                          backgroundColor: Colors.black45,
+                            content: Text(
+                              '${e.message}',
+                            style: const TextStyle(
+                              color: Colors.white
+                            ),),
+                          duration: const Duration(seconds: 3),
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(snackBar);
                       }
                     },
                       color: Colors.lightBlueAccent)

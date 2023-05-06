@@ -37,17 +37,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   void initState(){
     super.initState();
     getCurrentUser();
-    // Future.delayed(Duration.zero,()async{
-    //   try{
-    //     await _firestore.collection('users').doc(loggedInUser.uid).get().then((value){
-    //       details=value.data();
-    //     });
-    //   }
-    //   catch(e)
-    //   {
-    //     print(e);
-    //   }
-    // });
     createDialogflowtterAgent();
   }
 
